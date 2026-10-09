@@ -1,0 +1,30 @@
+{
+  "name": "Tank_Modbus",
+  "protocol": "modbus-tcp",
+  "modbusSlaveConfig": {
+    "enabled": true,
+    "transports": [
+      "tcp"
+    ],
+    "networkInterface": "0.0.0.0",
+    "port": 502,
+    "bufferMapping": {
+      "holdingRegisters": {
+        "qwCount": 0,
+        "mwCount": 0,
+        "mdCount": 2,
+        "mlCount": 0
+      },
+      "coils": {
+        "qxBits": 8,
+        "mxBits": 8
+      },
+      "discreteInputs": {
+        "ixBits": 8192
+      },
+      "inputRegisters": {
+        "iwCount": 1024
+      }
+    }
+  }
+}

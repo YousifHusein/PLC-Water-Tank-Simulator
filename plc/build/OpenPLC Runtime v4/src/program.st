@@ -1,0 +1,40 @@
+PROGRAM main
+  VAR
+    Low_Level : BOOL;
+    High_Level : BOOL;
+  END_VAR
+  VAR
+    Water_Level AT %MD0 : REAL := 0.0;
+    Pump AT %QX0.0 : BOOL;
+  END_VAR
+  VAR
+    _TMP_LT1133342_ENO : BOOL;
+    _TMP_LT1133342_OUT : BOOL;
+    _TMP_GE6713164_ENO : BOOL;
+    _TMP_GE6713164_OUT : BOOL;
+  END_VAR
+
+  _TMP_LT1133342_OUT := LT(EN := TRUE, IN1 := Water_Level, IN2 := 30.0, ENO => _TMP_LT1133342_ENO);
+  IF _TMP_LT1133342_ENO THEN
+      Low_Level := _TMP_LT1133342_OUT;
+  END_IF;
+  _TMP_GE6713164_OUT := GE(EN := TRUE, IN1 := Water_Level, IN2 := 80, ENO => _TMP_GE6713164_ENO);
+  IF _TMP_GE6713164_ENO THEN
+      High_Level := _TMP_GE6713164_OUT;
+  END_IF;
+  IF Low_Level THEN
+    Pump := TRUE; (*set*)
+  END_IF;
+  IF High_Level THEN
+    Pump := FALSE; (*reset*)
+  END_IF;
+END_PROGRAM
+
+
+CONFIGURATION Config0
+
+  RESOURCE Res0 ON PLC
+    TASK task0(INTERVAL := T#20ms,PRIORITY := 1);
+    PROGRAM instance0 WITH task0 : main;
+  END_RESOURCE
+END_CONFIGURATION
