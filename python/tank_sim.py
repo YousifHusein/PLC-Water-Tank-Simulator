@@ -3,6 +3,11 @@ import time
 
 from pymodbus.client import ModbusTcpClient
 
+from historian import (
+    initialize_database,
+    log_reading,
+    log_pump_event
+)
 
 def float_to_registers(value):
     packed = struct.pack(">f", value)
@@ -24,6 +29,9 @@ client = ModbusTcpClient("127.0.0.1", port=1502)
 if not client.connect():
     print("Could not connect to OpenPLC.")
     raise SystemExit
+
+initialize_database()
+previous_pump_state = None
 
 water_level = 20.0
 
@@ -50,6 +58,14 @@ try:
             raise RuntimeError(f"Read failed: {result}")
 
         pump_on = result.bits[0]
+
+        log_reading(water_level, pump_on)
+
+        if previous_pump_state is not None and pump_on != previous_pump_state:
+            event_type = "ON" if pump_on else "OFF"
+            log_pump_event(event_type, water_level)
+
+        previous_pump_state = pump_on
 
         # Simulate tank filling or draining
         if pump_on:

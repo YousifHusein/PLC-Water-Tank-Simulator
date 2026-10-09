@@ -3,3 +3,7 @@ venv/
 __pycahce__/
 *.pyc
 *.log
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
