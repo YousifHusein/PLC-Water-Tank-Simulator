@@ -1,67 +1,80 @@
 # PLC Water Tank Simulator
 
-A water tank level-control simulation built using OpenPLC ladder logic and Python. The PLC controls a pump based on the tank's water level, while a Python script simulates the filling and draining process through Modbus TCP communication.
+An automated water tank control system built using OpenPLC ladder logic, Python, Modbus TCP, and SQLite. The project simulates a water tank filling and draining while a PLC controls the pump based on predefined water-level thresholds.
 
-## Overview
-
-The system maintains the tank's water level using two thresholds:
-
-- **Below 30%:** Turn the pump ON to refill the tank.
-- **At 80%:** Turn the pump OFF to prevent overfilling.
-- **Between thresholds:** Maintain the previous pump state.
-
-This creates hysteresis, preventing the pump from rapidly switching on and off near a single threshold.
+A SQL historian records process measurements and pump events for historical analysis.
 
 ## Technologies
 
-- **OpenPLC** — PLC programming and ladder logic
-- **Python** — Water tank simulation
-- **Modbus TCP** — Communication between Python and OpenPLC
-- **PyModbus** — Python Modbus client library
+- **OpenPLC** — PLC ladder logic and control
+- **Python** — Tank simulation and Modbus communication
+- **Modbus TCP** — Data exchange between Python and OpenPLC
+- **SQLite** — Process historian and event logging
+- **SQL** — Historical data queries and pump runtime analysis
 
-## How It Works
+## System Overview
 
-1. Python initializes the simulated tank at 20%.
-2. The current water level is converted into two 16-bit Modbus registers and sent to OpenPLC.
-3. The PLC evaluates the water level and controls the pump using ladder logic.
-4. Python reads the pump output through Modbus TCP.
-5. When the pump is ON, the simulated water level increases by 5% per cycle.
-6. When the pump is OFF, the simulated water level decreases by 2% per cycle.
+The system uses hysteresis control to maintain the water level between two thresholds:
 
-The process repeats continuously, demonstrating automatic pump control.
+- **Low threshold (30%):** Start the pump when the water level falls below 30%.
+- **High threshold (80%):** Stop the pump when the water level reaches 80%.
+- **Between thresholds:** Maintain the previous pump state to prevent frequent switching.
 
-## PLC I/O Mapping
+The Python simulator communicates with OpenPLC through Modbus TCP. It writes the simulated water level to the PLC and reads the pump output to determine whether the tank should fill or drain.
 
-| Variable | Type | Location | Description |
+## Simulation Logic
+
+1. Initialize the tank at 20% capacity.
+2. Send the water level to OpenPLC over Modbus TCP.
+3. Read the pump output from the PLC.
+4. Increase the water level by 5% per cycle when the pump is ON.
+5. Decrease the water level by 2% per cycle when the pump is OFF.
+6. Record the water level and pump status in SQLite.
+7. Record pump ON/OFF transitions in a separate event table.
+
+The simulation repeats automatically until stopped.
+
+## PLC Variable Mapping
+
+| Variable | Type | Address | Description |
 |---|---|---|---|
-| Water_Level | REAL | %MD0 | Current simulated tank level |
+| Water_Level | REAL | %MD0 | Simulated tank level |
 | Low_Level | BOOL | Internal | Low-level condition |
 | High_Level | BOOL | Internal | High-level condition |
-| Pump | BOOL | %QX0.0 | Pump control output |
+| Pump | BOOL | %QX0.0 | Pump output |
 
-## Running the Simulation
+## Running the Project
 
-**Requirements:** Python, PyModbus, and a running OpenPLC runtime with the water tank program loaded.
+**Requirements**
 
-Install PyModbus:
+- Python 3
+- PyModbus 3.15.0
+- OpenPLC Editor and a running compatible OpenPLC runtime
+
+Load and run the PLC program in OpenPLC. The simulator expects Modbus TCP access at `127.0.0.1:1502`.
+
+Install the Python dependency:
 
 ```bash
 python -m pip install pymodbus==3.15.0
 ```
 
-The Python simulator connects to OpenPLC at `127.0.0.1:1502`. Make sure the runtime is accessible at this address and port.
-
-Start the simulation:
+Start the simulation from the repository root:
 
 ```bash
-cd python
-python tank_sim.py
+python python/tank_sim.py
 ```
 
-Press `Ctrl+C` to stop.
+Run the SQL analysis report:
+
+```bash
+python python/analyze_history.py
+```
+
+The SQLite database is created automatically by the historian.
 
 ## Future Improvements
 
-- Add an HMI to visualize the water level and pump status.
-- Implement high- and low-level alarms.
-- Add sensor fault detection and additional operator controls.
+- Develop an HMI for real-time water-level monitoring.
+- Add alarm handling for abnormal process conditions.
+- Display historical trends and pump runtime statistics in a dashboard.
